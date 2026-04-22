@@ -73,7 +73,7 @@ export function TopNav() {
               <Link
                 key={item.to}
                 to={item.to}
-                activeOptions={{ exact: true }}
+                activeOptions={{ exact: item.to === "/" }}
                 className="group flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground data-[status=active]:bg-surface data-[status=active]:text-foreground data-[status=active]:shadow-xs"
               >
                 <Icon className="size-3.5" strokeWidth={2.25} />
@@ -127,7 +127,7 @@ export function TopNav() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  activeOptions={{ exact: true }}
+                  activeOptions={{ exact: item.to === "/" }}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground",
