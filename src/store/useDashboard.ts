@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { MenuItem, Order, OrderStatus } from "@/types";
-import { buildHourly, buildMenu, buildOrders, newMenuId } from "@/lib/demoData";
+import { buildHistoricalOrders, buildHourly, buildMenu, buildOrders, newMenuId } from "@/lib/demoData";
 
 interface DashboardState {
   restaurantName: string;
@@ -18,7 +18,10 @@ interface DashboardState {
 }
 
 const initialMenu = buildMenu();
-const initialOrders = buildOrders(initialMenu, 18);
+const initialOrders = [
+  ...buildOrders(initialMenu, 18),
+  ...buildHistoricalOrders(initialMenu, 380),
+];
 const initialHourly = buildHourly();
 
 export const useDashboard = create<DashboardState>((set) => ({

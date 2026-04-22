@@ -87,6 +87,87 @@ export function buildOrders(menu: MenuItem[], count = 20): Order[] {
   return orders.sort((a, b) => b.createdAt - a.createdAt);
 }
 
+// Seeded RNG so SSR/CSR produce identical historical data (avoids hydration mismatch)
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function pickItemsSeeded(menu: MenuItem[], rng: () => number) {
+  const available = menu.filter((m) => m.isAvailable);
+  const count = 1 + Math.floor(rng() * 3);
+  const items = [];
+  let prepMax = 0;
+  let total = 0;
+  for (let i = 0; i < count; i++) {
+    const m = available[Math.floor(rng() * available.length)];
+    const qty = 1 + Math.floor(rng() * 2);
+    items.push({ name: m.name, qty, price: m.price, category: m.category });
+    total += m.price * qty;
+    prepMax = Math.max(prepMax, m.prepTimeEstimate);
+  }
+  return { items, total: Math.round(total * 100) / 100, expectedPrepTime: prepMax };
+}
+
+/**
+ * Builds historical delivered orders going back `daysBack` days (excludes today).
+ * Used to populate Today / MTD / YTD revenue stats. Deterministic per day.
+ */
+export function buildHistoricalOrders(menu: MenuItem[], daysBack = 380): Order[] {
+  const orders: Order[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (let d = 1; d <= daysBack; d++) {
+    const day = new Date(today);
+    day.setDate(today.getDate() - d);
+    // Seed per-day so the same date always yields the same orders
+    const seed = day.getFullYear() * 10000 + (day.getMonth() + 1) * 100 + day.getDate();
+    const rng = mulberry32(seed);
+
+    const dow = day.getDay(); // 0 Sun .. 6 Sat
+    const weekendBoost = dow === 5 || dow === 6 ? 1.4 : dow === 0 ? 1.15 : 1;
+    const base = 22 + Math.floor(rng() * 14); // 22-35 baseline orders/day
+    const orderCount = Math.round(base * weekendBoost);
+
+    for (let i = 0; i < orderCount; i++) {
+      const { items, total, expectedPrepTime } = pickItemsSeeded(menu, rng);
+      // Distribute through service hours 11:00 - 22:30
+      const minutesIntoDay = 11 * 60 + Math.floor(rng() * (11.5 * 60));
+      const createdAt = day.getTime() + minutesIntoDay * 60_000;
+      const isCancelled = rng() < 0.06;
+      const status: OrderStatus = isCancelled ? "cancelled" : "delivered";
+      const order: Order = {
+        orderId: `H-${seed}-${i}`,
+        userId: "rest_demo",
+        status,
+        items,
+        totalAmount: total,
+        createdAt,
+        expectedPrepTime,
+        customerName: NAMES[Math.floor(rng() * NAMES.length)],
+        table: rng() > 0.4 ? `T${1 + Math.floor(rng() * 24)}` : undefined,
+      };
+      if (status === "delivered") {
+        order.acceptedAt = createdAt + 45_000;
+        order.prepStartTime = order.acceptedAt;
+        order.readyTime = order.prepStartTime + expectedPrepTime * 1000;
+        order.deliveredTime = order.readyTime + 180_000;
+      } else {
+        order.cancelledAt = createdAt + 60_000;
+      }
+      orders.push(order);
+    }
+  }
+  return orders;
+}
+
 export function buildHourly(): HourlyOrder[] {
   const out: HourlyOrder[] = [];
   const today = new Date();
