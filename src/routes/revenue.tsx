@@ -33,7 +33,7 @@ function RevenuePage() {
         meta="Today · This week · Category mix"
       />
       <div className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-4xl">
           <RevenuePanel />
         </div>
       </div>
