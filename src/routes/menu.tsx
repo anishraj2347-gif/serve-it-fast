@@ -8,17 +8,17 @@ export const Route = createFileRoute("/menu")({
   component: MenuPage,
   head: () => ({
     meta: [
-      { title: "Bill of Fare · Menu · Bella Cucina" },
+      { title: "Menu · Bella Cucina" },
       {
         name: "description",
         content:
-          "Curate the carte — add new dishes, reprice favourites, retire the worn-out, and 86 anything that's run out, all in one editorial menu manager.",
+          "Manage the menu — add new dishes, adjust prices and prep times, and toggle availability when items run out.",
       },
-      { property: "og:title", content: "Bill of Fare · Menu · Bella Cucina" },
+      { property: "og:title", content: "Menu · Bella Cucina" },
       {
         property: "og:description",
         content:
-          "Curate the carte. Add, retire, reprice — and 86 a dish in one tap.",
+          "Manage dishes, prices, prep times and availability.",
       },
     ],
   }),
@@ -31,12 +31,12 @@ function MenuPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Section V · The Carte"
-        title="Bill of Fare"
-        lede="Tonight's offering, set in serif. Add a dish, retire one that's grown tired, or 86 anything the walk-in has run out of."
-        meta={`${menu.length} items · ${available} available · ${menu.length - available} 86'd`}
+        eyebrow="Catalog"
+        title="Menu"
+        lede="Add, edit, and toggle availability for every dish on the menu. Changes take effect immediately on the live order board."
+        meta={`${menu.length} items · ${available} available · ${menu.length - available} out of stock`}
       />
-      <div className="mx-auto max-w-[1400px] px-6 py-10 sm:px-8">
+      <div className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <MenuManager />
         </div>

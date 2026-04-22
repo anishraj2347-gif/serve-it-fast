@@ -1,25 +1,35 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDashboard } from "@/store/useDashboard";
-import { currency } from "@/lib/format";
-import { useMemo } from "react";
+import { currency, formatDuration } from "@/lib/format";
+import { useEffect, useMemo, useState } from "react";
 import { PageShell } from "@/components/dashboard/PageShell";
-import { ArrowUpRight, Flame } from "lucide-react";
+import {
+  ArrowUpRight,
+  Flame,
+  ListChecks,
+  Sparkles,
+  BarChart3,
+  Wallet,
+  UtensilsCrossed,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Home,
   head: () => ({
     meta: [
-      { title: "Bella Cucina · Service Desk" },
+      { title: "Overview · Bella Cucina" },
       {
         name: "description",
         content:
-          "The editorial operations desk for a modern kitchen — live order pass, AI demand forecast, daily ledger and the carte, all under one masthead.",
+          "Restaurant operations overview — live orders, today's revenue, demand forecast, and quick links to every section.",
       },
-      { property: "og:title", content: "Bella Cucina · Service Desk" },
+      { property: "og:title", content: "Overview · Bella Cucina" },
       {
         property: "og:description",
         content:
-          "The editorial operations desk for a modern kitchen — live order pass, AI demand forecast, daily ledger and the carte.",
+          "Real-time operations dashboard for restaurant teams.",
       },
     ],
   }),
@@ -28,38 +38,33 @@ export const Route = createFileRoute("/")({
 const SECTIONS = [
   {
     to: "/orders" as const,
-    numeral: "I",
-    title: "The Pass",
-    lede: "A drag-and-drop ticket board for live service. Fire, plate, deliver.",
-    accent: "bg-status-new",
+    title: "Orders",
+    description: "Live ticket board with drag-to-advance status updates",
+    icon: ListChecks,
   },
   {
     to: "/forecast" as const,
-    numeral: "II",
-    title: "The Oracle",
-    lede: "A heuristic forecast of tomorrow's rush, with chef's prep notes.",
-    accent: "bg-status-preparing",
+    title: "Forecast",
+    description: "Predicted peak windows derived from 7 days of order data",
+    icon: Sparkles,
   },
   {
     to: "/performance" as const,
-    numeral: "III",
     title: "Performance",
-    lede: "Acceptance, prep, delivery — the rhythm of your service in numbers.",
-    accent: "bg-status-ready",
+    description: "Prep time, delivery, acceptance and hourly volume",
+    icon: BarChart3,
   },
   {
     to: "/revenue" as const,
-    numeral: "IV",
-    title: "The Books",
-    lede: "Daily takings, weekly trend, and where the money is really being made.",
-    accent: "bg-brass",
+    title: "Revenue",
+    description: "Daily takings, weekly trend and category breakdown",
+    icon: Wallet,
   },
   {
     to: "/menu" as const,
-    numeral: "V",
-    title: "Bill of Fare",
-    lede: "Curate the carte. Add, retire, reprice — and 86 a dish in one tap.",
-    accent: "bg-primary",
+    title: "Menu",
+    description: "Manage dishes, prices, prep times and availability",
+    icon: UtensilsCrossed,
   },
 ];
 
@@ -68,16 +73,43 @@ function Home() {
   const menu = useDashboard((s) => s.menu);
   const hourly = useDashboard((s) => s.hourly);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const stats = useMemo(() => {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
+    const yesterday = startOfDay.getTime() - 24 * 60 * 60 * 1000;
+
     const todays = orders.filter(
       (o) => o.createdAt >= startOfDay.getTime() && o.status !== "cancelled",
     );
+    const yesterdays = orders.filter(
+      (o) =>
+        o.createdAt >= yesterday &&
+        o.createdAt < startOfDay.getTime() &&
+        o.status !== "cancelled",
+    );
+
     const live = orders.filter(
       (o) => o.status === "new" || o.status === "preparing",
     ).length;
     const revenue = todays.reduce((acc, o) => acc + o.totalAmount, 0);
+    const yesterdayRev = yesterdays.reduce((a, o) => a + o.totalAmount, 0);
+    const revDelta = yesterdayRev
+      ? Math.round(((revenue - yesterdayRev) / yesterdayRev) * 100)
+      : 0;
+
+    let prepSum = 0,
+      prepN = 0;
+    for (const o of orders) {
+      if (o.prepStartTime && o.readyTime) {
+        prepSum += (o.readyTime - o.prepStartTime) / 1000;
+        prepN++;
+      }
+    }
+    const avgPrep = prepN ? prepSum / prepN : 0;
+
     const today = hourly[hourly.length - 1]?.date;
     const todaysHourly = hourly.filter((x) => x.date === today);
     const max = todaysHourly.length
@@ -86,10 +118,13 @@ function Home() {
     const cur =
       todaysHourly.find((x) => x.hour === new Date().getHours())?.orderCount ?? 0;
     const isRush = max > 0 && cur >= max * 0.85;
+
     return {
       live,
       todays: todays.length,
       revenue,
+      revDelta,
+      avgPrep,
       menuCount: menu.length,
       isRush,
     };
@@ -97,162 +132,199 @@ function Home() {
 
   return (
     <PageShell>
-      {/* Hero — front page of the paper */}
-      <section className="border-b-2 border-foreground bg-paper">
-        <div className="mx-auto max-w-[1400px] px-6 py-12 sm:px-8 sm:py-20">
-          <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-primary">
-            The Daily Service · Front Page
-          </div>
-          <h1 className="mt-4 font-display text-6xl font-bold leading-[0.92] tracking-tight sm:text-8xl">
-            Mise en place,
-            <br />
-            <span className="italic text-primary">in real time.</span>
-          </h1>
-          <p className="mt-6 max-w-2xl font-display text-xl italic leading-snug text-muted-foreground sm:text-2xl">
-            An editorial operations desk for the modern kitchen — every ticket,
-            every dish, every dollar, set in type and updated by the second.
-          </p>
-
-          <div className="mt-10 flex flex-wrap items-center gap-3">
-            <Link
-              to="/orders"
-              className="inline-flex items-center gap-2 rounded-sm bg-foreground px-6 py-3 font-display text-base font-medium text-background transition-transform hover:-translate-y-0.5"
-            >
-              Open the Pass
-              <ArrowUpRight className="size-4" />
-            </Link>
-            <Link
-              to="/forecast"
-              className="inline-flex items-center gap-2 rounded-sm border-2 border-foreground bg-transparent px-6 py-3 font-display text-base font-medium text-foreground transition-colors hover:bg-foreground hover:text-background"
-            >
-              Read the Oracle
-            </Link>
+      {/* Hero */}
+      <section className="border-b border-border bg-surface">
+        <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div className="max-w-2xl">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                Operations · Today
+              </div>
+              <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                Welcome back.
+              </h1>
+              <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                Here's how Bella Cucina is performing right now — live orders,
+                today's revenue, and a quick read on tomorrow's expected rush.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                to="/orders"
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+              >
+                Open orders
+                <ArrowUpRight className="size-4" />
+              </Link>
+              <Link
+                to="/forecast"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-2"
+              >
+                View forecast
+              </Link>
+            </div>
           </div>
 
           {stats.isRush && (
-            <div className="mt-8 inline-flex items-center gap-3 rounded-sm border-l-4 border-primary bg-primary/5 px-4 py-3">
-              <Flame className="size-4 text-primary" />
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-                Rush · Now
+            <div className="mt-6 flex items-center gap-2.5 rounded-lg border border-status-delayed/20 bg-status-delayed-soft/50 px-4 py-3 text-sm">
+              <Flame className="size-4 shrink-0 text-status-delayed" />
+              <span className="font-semibold text-status-delayed">
+                Rush in progress.
               </span>
-              <span className="font-display text-sm italic">
-                {stats.live} live tickets — staff up, pre-fire popular plates.
+              <span className="text-foreground/85">
+                {stats.live} live tickets — keep all stations staffed and
+                pre-fire popular items.
               </span>
             </div>
           )}
         </div>
       </section>
 
-      {/* Live ticker — bold stats strip */}
-      <section className="border-b-2 border-foreground bg-foreground text-background">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-px bg-foreground sm:grid-cols-4">
-          <Stat label="Live tickets" value={stats.live} accent />
-          <Stat label="Today's orders" value={stats.todays} />
-          <Stat label="Today's revenue" value={currency(stats.revenue)} />
-          <Stat label="Menu items" value={stats.menuCount} />
+      {/* KPI grid */}
+      <section className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <KpiCard
+            label="Live orders"
+            value={mounted ? stats.live : "—"}
+            hint="New + preparing"
+            accent
+          />
+          <KpiCard
+            label="Today's orders"
+            value={mounted ? stats.todays : "—"}
+            hint="Excluding cancellations"
+          />
+          <KpiCard
+            label="Today's revenue"
+            value={mounted ? currency(stats.revenue) : "—"}
+            hint={
+              mounted ? (
+                <DeltaBadge delta={stats.revDelta} label="vs yesterday" />
+              ) : (
+                "vs yesterday"
+              )
+            }
+          />
+          <KpiCard
+            label="Avg prep time"
+            value={mounted ? formatDuration(stats.avgPrep) : "—"}
+            hint="Across all orders"
+          />
         </div>
       </section>
 
-      {/* Sections grid — the table of contents */}
-      <section className="mx-auto max-w-[1400px] px-6 py-14 sm:px-8 sm:py-20">
-        <div className="mb-8 flex items-end justify-between border-b-2 border-foreground pb-3">
+      {/* Sections grid */}
+      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-5 flex items-end justify-between">
           <div>
-            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-              Today's Edition
-            </div>
-            <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-              Inside the paper
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">
+              Jump into a workspace
             </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Five focused sections covering the full operations workflow.
+            </p>
           </div>
-          <p className="hidden font-display text-sm italic text-muted-foreground sm:block">
-            five sections · one kitchen
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-sm border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
-          {SECTIONS.map((s) => (
-            <Link
-              key={s.to}
-              to={s.to}
-              className="group relative flex flex-col gap-3 bg-card p-6 transition-colors hover:bg-paper"
-            >
-              <div className="flex items-baseline justify-between">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                  Section {s.numeral}
-                </span>
-                <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className={`size-2.5 rounded-full ${s.accent}`} />
-                <h3 className="font-display text-2xl font-bold tracking-tight">
-                  {s.title}
-                </h3>
-              </div>
-              <p className="font-display text-sm italic leading-snug text-muted-foreground">
-                {s.lede}
-              </p>
-              <div className="mt-2 ink-rule h-px" />
-              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/80">
-                Read section →
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Editor's note */}
-      <section className="border-t-2 border-foreground bg-paper">
-        <div className="mx-auto max-w-[1400px] px-6 py-14 sm:px-8 sm:py-20">
-          <div className="grid gap-10 lg:grid-cols-[1fr_2fr]">
-            <div>
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-                From the editor
-              </div>
-              <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-                A kitchen, set in type.
-              </h2>
-            </div>
-            <div className="space-y-4 font-display text-lg leading-relaxed text-foreground/85 first-letter:float-left first-letter:mr-2 first-letter:font-bold first-letter:text-7xl first-letter:leading-[0.85]">
-              <p>
-                Every service is a small newspaper — orders arriving like wire copy,
-                the pass running like a press, the books closing like a final
-                edition. Bella Cucina's Service Desk treats each shift with the
-                same care: a masthead at the top, columns that hold the news,
-                rules of typography that keep it legible in the rush.
-              </p>
-              <p className="text-base text-muted-foreground">
-                Open any section in the masthead above to begin tonight's service.
-              </p>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SECTIONS.map((s) => {
+            const Icon = s.icon;
+            return (
+              <Link
+                key={s.to}
+                to={s.to}
+                className="group relative flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="grid size-10 place-items-center rounded-lg bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Icon className="size-5" strokeWidth={2.25} />
+                  </div>
+                  <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold tracking-tight text-foreground">
+                    {s.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {s.description}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </PageShell>
   );
 }
 
-function Stat({
+function KpiCard({
   label,
   value,
+  hint,
   accent,
 }: {
   label: string;
   value: string | number;
+  hint?: React.ReactNode;
   accent?: boolean;
 }) {
   return (
-    <div className="bg-foreground p-5 sm:p-6">
-      <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-background/70">
-        {accent && <span className="size-1.5 animate-pulse rounded-full bg-primary" />}
+    <div
+      className={`rounded-xl border bg-card p-4 shadow-xs ${
+        accent ? "border-primary/20 ring-1 ring-primary/5" : "border-border"
+      }`}
+    >
+      <div
+        className={`flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider ${
+          accent ? "text-primary" : "text-muted-foreground"
+        }`}
+      >
+        {accent && (
+          <span className="relative flex size-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+          </span>
+        )}
         {label}
       </div>
       <div
-        className={`mt-1 font-display text-3xl font-bold tabular-nums sm:text-4xl ${
-          accent ? "text-primary" : "text-background"
-        }`}
+        className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-foreground"
+        suppressHydrationWarning
       >
         {value}
       </div>
+      {hint && (
+        <div
+          className="mt-1 text-xs text-muted-foreground"
+          suppressHydrationWarning
+        >
+          {hint}
+        </div>
+      )}
     </div>
+  );
+}
+
+function DeltaBadge({ delta, label }: { delta: number; label: string }) {
+  const positive = delta >= 0;
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span
+        className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+          positive
+            ? "bg-status-ready-soft text-status-ready"
+            : "bg-status-delayed-soft text-status-delayed"
+        }`}
+      >
+        {positive ? (
+          <TrendingUp className="size-3" />
+        ) : (
+          <TrendingDown className="size-3" />
+        )}
+        {Math.abs(delta)}%
+      </span>
+      <span>{label}</span>
+    </span>
   );
 }
