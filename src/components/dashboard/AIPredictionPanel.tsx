@@ -1,6 +1,12 @@
 import { useDashboard } from "@/store/useDashboard";
 import { useEffect, useMemo, useState } from "react";
-import { TrendingUp, Lightbulb, Loader2, RefreshCw } from "lucide-react";
+import {
+  Sparkles,
+  TrendingUp,
+  Lightbulb,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { formatHourLabel } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { PanelShell } from "./PanelShell";
@@ -13,16 +19,10 @@ interface Prediction {
   confidence: "low" | "medium" | "high";
 }
 
-/**
- * Local heuristic "demand prediction" — analyses 7 days of hourly data
- * to find tomorrow's likely peak window and surface a prep tip.
- * (Pure client-side; no backend required.)
- */
 function computePrediction(
   hourly: { date: string; hour: number; orderCount: number }[],
   topItems: string[],
 ): Prediction {
-  // Average orders per hour-of-day across the past 7 days
   const buckets: Record<number, number[]> = {};
   for (const h of hourly) {
     if (!buckets[h.hour]) buckets[h.hour] = [];
@@ -36,7 +36,6 @@ function computePrediction(
   );
   avg.sort((a, b) => a.hour - b.hour);
 
-  // Find best 3-hour rolling window
   let best = { start: avg[0]?.hour ?? 12, sum: -Infinity };
   for (let i = 0; i < avg.length - 2; i++) {
     const sum = avg[i].avg + avg[i + 1].avg + avg[i + 2].avg;
@@ -52,13 +51,13 @@ function computePrediction(
   const window = `${formatHourLabel(best.start)}–${formatHourLabel(best.start + 3)}`;
   const summary =
     intensity > 1.6
-      ? `A pronounced rush is expected ${window}, running roughly ${intensity.toFixed(1)}× the daily average.`
+      ? `Significant rush expected ${window}, roughly ${intensity.toFixed(1)}× the daily average volume.`
       : intensity > 1.2
-        ? `A moderate uptick is likely ${window}, about ${intensity.toFixed(1)}× the daily average — staff accordingly.`
-        : `Service should stay relatively even tomorrow; mild bump near ${window}.`;
+        ? `Moderate uptick likely ${window}, about ${intensity.toFixed(1)}× the daily average — staff accordingly.`
+        : `Service should remain steady tomorrow with a mild bump near ${window}.`;
 
-  const focus = topItems.slice(0, 2).join(" & ") || "high-prep dishes";
-  const prep_tip = `Pre-stage mise en place for ${focus} 30 minutes before ${formatHourLabel(best.start)}, and queue an extra runner for the pass.`;
+  const focus = topItems.slice(0, 2).join(" and ") || "high-prep dishes";
+  const prep_tip = `Pre-stage mise en place for ${focus} 30 minutes before ${formatHourLabel(best.start)} and add an extra runner during the window.`;
 
   return {
     start_hour: best.start,
@@ -88,11 +87,10 @@ export function AIPredictionPanel() {
 
   function refresh() {
     setLoading(true);
-    // Tiny artificial delay for the "thinking" feel
     setTimeout(() => {
       setPrediction(computePrediction(hourly, topItems));
       setLoading(false);
-    }, 350);
+    }, 300);
   }
 
   useEffect(() => {
@@ -102,14 +100,14 @@ export function AIPredictionPanel() {
 
   return (
     <PanelShell
-      eyebrow="Section I · Forecast"
-      title="The Oracle"
-      hint="Tomorrow's expected rush, learned from the week's pattern"
+      title="Demand forecast"
+      description="Tomorrow's expected peak window"
+      icon={<Sparkles className="size-4" strokeWidth={2.25} />}
       action={
         <Button
           size="icon"
           variant="ghost"
-          className="size-8 rounded-sm"
+          className="size-8"
           onClick={refresh}
           disabled={loading}
           aria-label="Refresh prediction"
@@ -122,52 +120,50 @@ export function AIPredictionPanel() {
         </Button>
       }
     >
-      {loading && !prediction && (
-        <div className="grid place-items-center gap-2 rounded-sm border border-dashed border-border bg-paper p-6 text-sm text-muted-foreground">
+      {loading && !prediction ? (
+        <div className="grid place-items-center gap-2 rounded-lg border border-dashed border-border bg-surface-2/40 p-8 text-sm text-muted-foreground">
           <Loader2 className="size-5 animate-spin text-primary" />
-          <span className="font-display italic">Reading the week's pattern…</span>
+          <span>Analyzing 7 days of order data…</span>
         </div>
-      )}
-
-      {prediction && (
-        <div className="space-y-3">
-          <div className="relative overflow-hidden rounded-sm border border-foreground/90 bg-foreground p-5 text-background">
+      ) : prediction ? (
+        <div className="space-y-4">
+          <div className="rounded-xl bg-gradient-to-br from-primary to-[oklch(0.55_0.18_265)] p-5 text-primary-foreground shadow-sm">
             <div className="mb-1 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-background/70">
-                <TrendingUp className="size-3" />
-                Tomorrow's peak
+              <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-primary-foreground/85">
+                <TrendingUp className="size-3.5" />
+                Peak window
               </div>
               <ConfidenceBadge level={prediction.confidence} />
             </div>
-            <div className="font-display text-3xl font-bold tracking-tight tabular-nums">
+            <div className="text-3xl font-semibold tracking-tight tabular-nums">
               {formatHourLabel(prediction.start_hour)}
-              <span className="text-background/50"> — </span>
+              <span className="text-primary-foreground/50"> → </span>
               {formatHourLabel(prediction.end_hour)}
             </div>
-            <p className="mt-2 font-display text-sm italic leading-relaxed text-background/85">
+            <p className="mt-2 text-sm leading-relaxed text-primary-foreground/90">
               {prediction.summary}
             </p>
           </div>
 
-          <div className="rounded-sm border-l-4 border-primary bg-paper p-4">
-            <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
-              <Lightbulb className="size-3" />
-              Chef's prep note
+          <div className="rounded-lg border border-border bg-surface-2/40 p-4">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-primary">
+              <Lightbulb className="size-3.5" />
+              Prep recommendation
             </div>
             <p className="mt-1.5 text-sm leading-relaxed text-foreground/90">
               {prediction.prep_tip}
             </p>
           </div>
         </div>
-      )}
+      ) : null}
     </PanelShell>
   );
 }
 
 function ConfidenceBadge({ level }: { level: "low" | "medium" | "high" }) {
   return (
-    <span className="rounded-sm border border-background/40 bg-background/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-background">
-      {level} conf.
+    <span className="rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground">
+      {level} confidence
     </span>
   );
 }

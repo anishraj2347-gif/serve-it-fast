@@ -2,42 +2,51 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  eyebrow: string;
   title: string;
-  hint?: string;
+  description?: string;
+  icon?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
 }
 
-/** Shared editorial panel — newspaper-style header with eyebrow + title rule. */
-export function PanelShell({ eyebrow, title, hint, action, children, className }: Props) {
+/** Shared panel/card — clean professional card with title bar. */
+export function PanelShell({
+  title,
+  description,
+  icon,
+  action,
+  children,
+  className,
+}: Props) {
   return (
     <section
       className={cn(
-        "relative rounded-sm border border-border bg-card p-5 shadow-paper",
+        "rounded-xl border border-border bg-card shadow-xs",
         className,
       )}
     >
-      <header className="mb-4 border-b-2 border-foreground/90 pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-              {eyebrow}
+      <header className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+        <div className="flex items-start gap-3">
+          {icon && (
+            <div className="grid size-8 shrink-0 place-items-center rounded-md bg-accent text-accent-foreground">
+              {icon}
             </div>
-            <h2 className="mt-0.5 font-display text-2xl font-bold leading-none tracking-tight">
+          )}
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
               {title}
             </h2>
-            {hint && (
-              <p className="mt-1 font-display text-xs italic text-muted-foreground">
-                {hint}
+            {description && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {description}
               </p>
             )}
           </div>
-          {action && <div className="shrink-0">{action}</div>}
         </div>
+        {action && <div className="shrink-0">{action}</div>}
       </header>
-      {children}
+      <div className="p-5">{children}</div>
     </section>
   );
 }

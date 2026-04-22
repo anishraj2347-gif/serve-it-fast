@@ -9,17 +9,17 @@ export const Route = createFileRoute("/orders")({
   component: OrdersPage,
   head: () => ({
     meta: [
-      { title: "The Pass · Bella Cucina" },
+      { title: "Orders · Bella Cucina" },
       {
         name: "description",
         content:
-          "Live order ticket board — incoming, on the pass, plated, served. Drag tickets between columns to advance status during service.",
+          "Live order ticket board — new, preparing, ready, delivered. Drag tickets between columns to advance status during service.",
       },
-      { property: "og:title", content: "The Pass · Bella Cucina" },
+      { property: "og:title", content: "Orders · Bella Cucina" },
       {
         property: "og:description",
         content:
-          "Live order ticket board for the kitchen pass — drag to advance, watch for delays.",
+          "Live order ticket board for restaurant operations — drag to advance status.",
       },
     ],
   }),
@@ -38,17 +38,17 @@ function OrdersPage() {
     );
   }, [orders]);
 
-  const meta = `Incoming ${counts.new ?? 0} · On Pass ${counts.preparing ?? 0} · Plated ${counts.ready ?? 0} · Served ${counts.delivered ?? 0}`;
+  const meta = `New ${counts.new ?? 0} · Preparing ${counts.preparing ?? 0} · Ready ${counts.ready ?? 0} · Delivered ${counts.delivered ?? 0}`;
 
   return (
     <PageShell>
       <PageHero
-        eyebrow="Section I · Live Service"
-        title="The Pass"
-        lede="Every ticket the kitchen sees, set in type and timed to the second. Drag a ticket between columns to advance its status."
+        eyebrow="Live service"
+        title="Orders"
+        lede="Every ticket the kitchen sees. Drag a card between columns to advance its status, or use the action buttons on incoming orders."
         meta={meta}
       />
-      <div className="mx-auto max-w-[1400px] px-6 py-10 sm:px-8">
+      <div className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 lg:px-8">
         <KanbanBoard />
       </div>
     </PageShell>

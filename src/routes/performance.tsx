@@ -11,13 +11,13 @@ export const Route = createFileRoute("/performance")({
       {
         name: "description",
         content:
-          "Service throughput at a glance — average prep, delivery time, acceptance and cancellation rates, and today's hourly order flow.",
+          "Service performance metrics — average prep time, delivery time, acceptance and cancellation rates, plus today's hourly order volume.",
       },
       { property: "og:title", content: "Performance · Bella Cucina" },
       {
         property: "og:description",
         content:
-          "The rhythm of service in numbers — prep time, delivery, acceptance and the hourly flow.",
+          "Operational metrics — prep time, delivery, acceptance and the hourly order flow.",
       },
     ],
   }),
@@ -27,12 +27,12 @@ function PerformancePage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Section III · The Numbers"
+        eyebrow="Operational metrics"
         title="Performance"
-        lede="The rhythm of your service, set in figures. Watch for the lulls between rushes — they're where the kitchen earns its quiet."
-        meta="Prep · Delivery · Acceptance · Hourly flow"
+        lede="Throughput and timing across the kitchen. Watch the hourly chart for the lulls between rushes — they're where you reset for the next push."
+        meta="Prep · Delivery · Acceptance · Hourly volume"
       />
-      <div className="mx-auto max-w-[1400px] px-6 py-10 sm:px-8">
+      <div className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <AnalyticsPanel />
         </div>
