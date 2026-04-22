@@ -48,6 +48,10 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
 
+  --color-accent-bold: var(--accent-bold);
+  --color-accent-bold-foreground: var(--accent-bold-foreground);
+  --color-accent-bold-soft: var(--accent-bold-soft);
+
   --color-status-new: var(--status-new);
   --color-status-new-soft: var(--status-new-soft);
   --color-status-preparing: var(--status-preparing);
@@ -104,6 +108,11 @@
 
   --accent: oklch(0.95 0.018 265);
   --accent-foreground: oklch(0.35 0.12 265);
+
+  /* Bold accent — warm coral, used to add energy across pages */
+  --accent-bold: oklch(0.68 0.19 32);
+  --accent-bold-foreground: oklch(0.99 0.005 250);
+  --accent-bold-soft: oklch(0.96 0.04 32);
 
   --destructive: oklch(0.55 0.21 27);
   --destructive-foreground: oklch(0.99 0.005 250);
@@ -170,6 +179,10 @@
   --muted-foreground: oklch(0.7 0.015 260);
   --accent: oklch(0.32 0.04 265);
   --accent-foreground: oklch(0.85 0.08 265);
+
+  --accent-bold: oklch(0.72 0.18 32);
+  --accent-bold-foreground: oklch(0.16 0.012 260);
+  --accent-bold-soft: oklch(0.32 0.08 32);
 
   --destructive: oklch(0.65 0.21 27);
   --destructive-foreground: oklch(0.99 0.005 250);
