@@ -8,9 +8,19 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Area,
+  AreaChart,
 } from "recharts";
 import { formatDuration, formatHourLabel } from "@/lib/format";
-import { Timer, Truck, ShoppingBag, ThumbsUp, XCircle } from "lucide-react";
+import {
+  Timer,
+  Truck,
+  ShoppingBag,
+  ThumbsUp,
+  XCircle,
+  BarChart3,
+  TrendingUp,
+} from "lucide-react";
 import { PanelShell } from "./PanelShell";
 
 export function AnalyticsPanel() {
@@ -60,72 +70,85 @@ export function AnalyticsPanel() {
   }, [hourly]);
 
   return (
-    <PanelShell eyebrow="Section II" title="Performance" hint="Service throughput">
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-border bg-border">
-        <Kpi icon={<Timer className="size-3" />} label="Avg prep" value={formatDuration(avgPrep)} />
-        <Kpi icon={<Truck className="size-3" />} label="Avg deliver" value={formatDuration(avgDelivery)} />
+    <PanelShell
+      title="Service performance"
+      description="Throughput, timing, and acceptance"
+      icon={<BarChart3 className="size-4" strokeWidth={2.25} />}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <Kpi icon={<Timer className="size-3.5" />} label="Avg prep" value={formatDuration(avgPrep)} />
+        <Kpi icon={<Truck className="size-3.5" />} label="Avg deliver" value={formatDuration(avgDelivery)} />
         <Kpi
-          icon={<ThumbsUp className="size-3" />}
+          icon={<ThumbsUp className="size-3.5" />}
           label="Acceptance"
           value={`${acceptanceRate}%`}
           tone="good"
         />
         <Kpi
-          icon={<XCircle className="size-3" />}
+          icon={<XCircle className="size-3.5" />}
           label="Cancellation"
           value={`${cancellationRate}%`}
           tone={cancellationRate > 15 ? "bad" : undefined}
         />
         <Kpi
-          icon={<ShoppingBag className="size-3" />}
+          icon={<ShoppingBag className="size-3.5" />}
           label="Total orders"
           value={String(total)}
           className="col-span-2"
         />
       </div>
 
-      <div className="mt-4">
-        <div className="mb-2 flex items-baseline justify-between">
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Today's flow
+      <div className="mt-5">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="size-3.5 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Today's volume</h3>
           </div>
-          <div className="font-display text-xs italic text-muted-foreground">
-            hourly volume
-          </div>
+          <span className="text-[11px] font-medium text-muted-foreground">
+            orders per hour
+          </span>
         </div>
-        <div className="h-[150px]">
+        <div className="h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trend} margin={{ top: 5, right: 8, bottom: 0, left: -22 }}>
-              <CartesianGrid stroke="var(--color-border)" strokeDasharray="2 4" vertical={false} />
+            <AreaChart data={trend} margin={{ top: 5, right: 8, bottom: 0, left: -22 }}>
+              <defs>
+                <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 10, fill: "var(--color-muted-foreground)", fontFamily: "JetBrains Mono" }}
+                tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                 tickLine={false}
-                axisLine={{ stroke: "var(--color-border)" }}
+                axisLine={false}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "var(--color-muted-foreground)", fontFamily: "JetBrains Mono" }}
+                tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                 tickLine={false}
                 axisLine={false}
               />
               <Tooltip
+                cursor={{ stroke: "var(--color-border)", strokeWidth: 1 }}
                 contentStyle={{
                   background: "var(--color-popover)",
-                  border: "1px solid var(--color-foreground)",
-                  borderRadius: 2,
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
                   fontSize: 12,
-                  fontFamily: "JetBrains Mono",
+                  boxShadow: "var(--shadow-md)",
                 }}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="orders"
                 stroke="var(--color-primary)"
                 strokeWidth={2}
-                dot={{ fill: "var(--color-primary)", r: 3 }}
-                activeDot={{ r: 5 }}
+                fill="url(#areaFill)"
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 2, fill: "var(--color-primary)" }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -153,14 +176,17 @@ function Kpi({
         ? "text-status-delayed"
         : "text-foreground";
   return (
-    <div className={`bg-card p-3 ${className ?? ""}`}>
-      <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+    <div className={`rounded-lg border border-border bg-surface-2/40 p-3 ${className ?? ""}`}>
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
         {icon}
         {label}
       </div>
-      <div className={`mt-1 font-display text-xl font-semibold tabular-nums ${toneClass}`}>
+      <div className={`mt-1 text-xl font-semibold tabular-nums tracking-tight ${toneClass}`}>
         {value}
       </div>
     </div>
   );
 }
+
+// Keep LineChart import to avoid TS6133 unused warning if recharts re-exports change.
+void LineChart;

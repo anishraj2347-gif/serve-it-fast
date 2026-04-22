@@ -13,6 +13,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { currency } from "@/lib/format";
+import { Wallet, TrendingUp, PieChart as PieIcon } from "lucide-react";
 import { PanelShell } from "./PanelShell";
 
 const PIE_COLORS = [
@@ -46,7 +47,7 @@ export function RevenuePanel() {
         cats[c] = (cats[c] || 0) + it.price * it.qty;
       }
       const d = new Date(o.createdAt);
-      const key = d.toLocaleDateString([], { weekday: "short" });
+      const key = d.toLocaleDateString("en-US", { weekday: "short" });
       days[key] = (days[key] || 0) + o.totalAmount;
     }
 
@@ -54,7 +55,7 @@ export function RevenuePanel() {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const key = d.toLocaleDateString([], { weekday: "short" });
+      const key = d.toLocaleDateString("en-US", { weekday: "short" });
       order7.push({ day: key, revenue: Math.round((days[key] || 0) * 100) / 100 });
     }
 
@@ -65,61 +66,75 @@ export function RevenuePanel() {
     return { today, week, byCategory, byDay: order7 };
   }, [orders]);
 
+  const totalCat = byCategory.reduce((a, b) => a + b.value, 0);
+
   return (
-    <PanelShell eyebrow="Section III" title="The Books" hint="Daily ledger & category mix">
-      <div className="mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-border bg-border">
-        <RevCard label="Today" value={currency(today)} accent />
-        <RevCard label="This week" value={currency(week)} />
+    <PanelShell
+      title="Revenue"
+      description="Today, this week, and category mix"
+      icon={<Wallet className="size-4" strokeWidth={2.25} />}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <Stat label="Today" value={currency(today)} accent />
+        <Stat label="This week" value={currency(week)} />
       </div>
 
-      <div className="mb-5">
-        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          Revenue · last 7 days
+      <div className="mt-5">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="size-3.5 text-primary" />
+            <h3 className="text-sm font-semibold">Last 7 days</h3>
+          </div>
+          <span className="text-[11px] font-medium text-muted-foreground">
+            daily revenue
+          </span>
         </div>
-        <div className="h-[140px]">
+        <div className="h-[160px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={byDay} margin={{ top: 5, right: 4, bottom: 0, left: -20 }}>
-              <CartesianGrid stroke="var(--color-border)" strokeDasharray="2 4" vertical={false} />
+              <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: 10, fill: "var(--color-muted-foreground)", fontFamily: "JetBrains Mono" }}
+                tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                 tickLine={false}
-                axisLine={{ stroke: "var(--color-border)" }}
+                axisLine={false}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "var(--color-muted-foreground)", fontFamily: "JetBrains Mono" }}
+                tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                 tickLine={false}
                 axisLine={false}
               />
               <Tooltip
+                cursor={{ fill: "var(--color-accent)" }}
                 contentStyle={{
                   background: "var(--color-popover)",
-                  border: "1px solid var(--color-foreground)",
-                  borderRadius: 2,
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
                   fontSize: 12,
-                  fontFamily: "JetBrains Mono",
+                  boxShadow: "var(--shadow-md)",
                 }}
                 formatter={(v) => currency(Number(v))}
               />
-              <Bar dataKey="revenue" fill="var(--color-primary)" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="revenue" fill="var(--color-primary)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div>
-        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          Mix by category
+      <div className="mt-5 border-t border-border pt-5">
+        <div className="mb-3 flex items-center gap-2">
+          <PieIcon className="size-3.5 text-primary" />
+          <h3 className="text-sm font-semibold">By category</h3>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="h-[120px] w-[120px] shrink-0">
+        <div className="flex items-center gap-5">
+          <div className="relative h-[120px] w-[120px] shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={byCategory}
                   dataKey="value"
                   nameKey="name"
-                  innerRadius={32}
+                  innerRadius={36}
                   outerRadius={56}
                   paddingAngle={2}
                   stroke="var(--color-card)"
@@ -133,33 +148,48 @@ export function RevenuePanel() {
                   formatter={(v) => currency(Number(v))}
                   contentStyle={{
                     background: "var(--color-popover)",
-                    border: "1px solid var(--color-foreground)",
-                    borderRadius: 2,
+                    border: "1px solid var(--color-border)",
+                    borderRadius: 8,
                     fontSize: 12,
-                    fontFamily: "JetBrains Mono",
+                    boxShadow: "var(--shadow-md)",
                   }}
                 />
               </PieChart>
             </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 grid place-items-center">
+              <div className="text-center">
+                <div className="text-[10px] font-medium text-muted-foreground">
+                  Total
+                </div>
+                <div className="text-xs font-semibold tabular-nums">
+                  {currency(totalCat)}
+                </div>
+              </div>
+            </div>
           </div>
-          <ul className="min-w-0 flex-1 space-y-1.5">
-            {byCategory.map((c, i) => (
-              <li
-                key={c.name}
-                className="flex items-center justify-between gap-2 text-xs"
-              >
-                <span className="flex min-w-0 items-center gap-2">
-                  <span
-                    className="size-2.5 shrink-0 rounded-sm"
-                    style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
-                  />
-                  <span className="truncate text-foreground/90">{c.name}</span>
-                </span>
-                <span className="font-mono tabular-nums text-muted-foreground">
-                  {currency(c.value)}
-                </span>
-              </li>
-            ))}
+          <ul className="min-w-0 flex-1 space-y-2">
+            {byCategory.map((c, i) => {
+              const pct = totalCat ? Math.round((c.value / totalCat) * 100) : 0;
+              return (
+                <li key={c.name} className="flex items-center justify-between gap-3 text-xs">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className="size-2.5 shrink-0 rounded-sm"
+                      style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
+                    />
+                    <span className="truncate font-medium text-foreground">
+                      {c.name}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    <span className="tabular-nums">{pct}%</span>
+                    <span className="font-semibold tabular-nums text-foreground">
+                      {currency(c.value)}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
@@ -167,7 +197,7 @@ export function RevenuePanel() {
   );
 }
 
-function RevCard({
+function Stat({
   label,
   value,
   accent,
@@ -177,15 +207,21 @@ function RevCard({
   accent?: boolean;
 }) {
   return (
-    <div className={`p-3 ${accent ? "bg-foreground text-background" : "bg-card"}`}>
+    <div
+      className={`rounded-lg border p-3 ${
+        accent
+          ? "border-primary/20 bg-primary/5"
+          : "border-border bg-surface-2/40"
+      }`}
+    >
       <div
-        className={`font-mono text-[10px] uppercase tracking-[0.2em] ${
-          accent ? "text-background/70" : "text-muted-foreground"
+        className={`text-[11px] font-medium ${
+          accent ? "text-primary" : "text-muted-foreground"
         }`}
       >
         {label}
       </div>
-      <div className="mt-1 font-display text-2xl font-bold tabular-nums">
+      <div className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">
         {value}
       </div>
     </div>

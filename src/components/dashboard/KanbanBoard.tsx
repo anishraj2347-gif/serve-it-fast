@@ -10,11 +10,11 @@ import { Order, OrderStatus } from "@/types";
 import { KanbanColumn } from "./KanbanColumn";
 import { useMemo } from "react";
 
-const COLUMNS: { status: OrderStatus; title: string; numeral: string }[] = [
-  { status: "new", title: "Incoming", numeral: "I" },
-  { status: "preparing", title: "On the Pass", numeral: "II" },
-  { status: "ready", title: "Plated", numeral: "III" },
-  { status: "delivered", title: "Served", numeral: "IV" },
+const COLUMNS: { status: OrderStatus; title: string }[] = [
+  { status: "new", title: "New" },
+  { status: "preparing", title: "Preparing" },
+  { status: "ready", title: "Ready" },
+  { status: "delivered", title: "Delivered" },
 ];
 
 export function KanbanBoard() {
@@ -51,13 +51,12 @@ export function KanbanBoard() {
 
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {COLUMNS.map((c) => (
           <KanbanColumn
             key={c.status}
             status={c.status}
             title={c.title}
-            numeral={c.numeral}
             orders={grouped[c.status]}
           />
         ))}
