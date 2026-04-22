@@ -103,10 +103,14 @@ export function OrdersBarView({ orders }: Props) {
                   borderRadius: 8,
                   fontSize: 12,
                 }}
-                formatter={(value: number, _name, props) => [
-                  `${value} ticket${value === 1 ? "" : "s"} · ${currency(props.payload.revenue)}`,
-                  props.payload.label,
-                ]}
+                formatter={(value, _name, item) => {
+                  const v = Number(value);
+                  const payload = (item as { payload?: { revenue: number; label: string } })?.payload;
+                  return [
+                    `${v} ticket${v === 1 ? "" : "s"} · ${currency(payload?.revenue ?? 0)}`,
+                    payload?.label ?? "",
+                  ];
+                }}
                 labelFormatter={() => ""}
               />
               <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={64}>
