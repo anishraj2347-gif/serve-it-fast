@@ -15,6 +15,9 @@ import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RevenueYtdRouteImport } from './routes/revenue.ytd'
+import { Route as RevenueWeekRouteImport } from './routes/revenue.week'
+import { Route as RevenueMtdRouteImport } from './routes/revenue.mtd'
 
 const RevenueRoute = RevenueRouteImport.update({
   id: '/revenue',
@@ -46,6 +49,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RevenueYtdRoute = RevenueYtdRouteImport.update({
+  id: '/ytd',
+  path: '/ytd',
+  getParentRoute: () => RevenueRoute,
+} as any)
+const RevenueWeekRoute = RevenueWeekRouteImport.update({
+  id: '/week',
+  path: '/week',
+  getParentRoute: () => RevenueRoute,
+} as any)
+const RevenueMtdRoute = RevenueMtdRouteImport.update({
+  id: '/mtd',
+  path: '/mtd',
+  getParentRoute: () => RevenueRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,7 +71,10 @@ export interface FileRoutesByFullPath {
   '/menu': typeof MenuRoute
   '/orders': typeof OrdersRoute
   '/performance': typeof PerformanceRoute
-  '/revenue': typeof RevenueRoute
+  '/revenue': typeof RevenueRouteWithChildren
+  '/revenue/mtd': typeof RevenueMtdRoute
+  '/revenue/week': typeof RevenueWeekRoute
+  '/revenue/ytd': typeof RevenueYtdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +82,10 @@ export interface FileRoutesByTo {
   '/menu': typeof MenuRoute
   '/orders': typeof OrdersRoute
   '/performance': typeof PerformanceRoute
-  '/revenue': typeof RevenueRoute
+  '/revenue': typeof RevenueRouteWithChildren
+  '/revenue/mtd': typeof RevenueMtdRoute
+  '/revenue/week': typeof RevenueWeekRoute
+  '/revenue/ytd': typeof RevenueYtdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +94,10 @@ export interface FileRoutesById {
   '/menu': typeof MenuRoute
   '/orders': typeof OrdersRoute
   '/performance': typeof PerformanceRoute
-  '/revenue': typeof RevenueRoute
+  '/revenue': typeof RevenueRouteWithChildren
+  '/revenue/mtd': typeof RevenueMtdRoute
+  '/revenue/week': typeof RevenueWeekRoute
+  '/revenue/ytd': typeof RevenueYtdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,8 +108,20 @@ export interface FileRouteTypes {
     | '/orders'
     | '/performance'
     | '/revenue'
+    | '/revenue/mtd'
+    | '/revenue/week'
+    | '/revenue/ytd'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/forecast' | '/menu' | '/orders' | '/performance' | '/revenue'
+  to:
+    | '/'
+    | '/forecast'
+    | '/menu'
+    | '/orders'
+    | '/performance'
+    | '/revenue'
+    | '/revenue/mtd'
+    | '/revenue/week'
+    | '/revenue/ytd'
   id:
     | '__root__'
     | '/'
@@ -91,6 +130,9 @@ export interface FileRouteTypes {
     | '/orders'
     | '/performance'
     | '/revenue'
+    | '/revenue/mtd'
+    | '/revenue/week'
+    | '/revenue/ytd'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -99,7 +141,7 @@ export interface RootRouteChildren {
   MenuRoute: typeof MenuRoute
   OrdersRoute: typeof OrdersRoute
   PerformanceRoute: typeof PerformanceRoute
-  RevenueRoute: typeof RevenueRoute
+  RevenueRoute: typeof RevenueRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -146,8 +188,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/revenue/ytd': {
+      id: '/revenue/ytd'
+      path: '/ytd'
+      fullPath: '/revenue/ytd'
+      preLoaderRoute: typeof RevenueYtdRouteImport
+      parentRoute: typeof RevenueRoute
+    }
+    '/revenue/week': {
+      id: '/revenue/week'
+      path: '/week'
+      fullPath: '/revenue/week'
+      preLoaderRoute: typeof RevenueWeekRouteImport
+      parentRoute: typeof RevenueRoute
+    }
+    '/revenue/mtd': {
+      id: '/revenue/mtd'
+      path: '/mtd'
+      fullPath: '/revenue/mtd'
+      preLoaderRoute: typeof RevenueMtdRouteImport
+      parentRoute: typeof RevenueRoute
+    }
   }
 }
+
+interface RevenueRouteChildren {
+  RevenueMtdRoute: typeof RevenueMtdRoute
+  RevenueWeekRoute: typeof RevenueWeekRoute
+  RevenueYtdRoute: typeof RevenueYtdRoute
+}
+
+const RevenueRouteChildren: RevenueRouteChildren = {
+  RevenueMtdRoute: RevenueMtdRoute,
+  RevenueWeekRoute: RevenueWeekRoute,
+  RevenueYtdRoute: RevenueYtdRoute,
+}
+
+const RevenueRouteWithChildren =
+  RevenueRoute._addFileChildren(RevenueRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -155,7 +233,7 @@ const rootRouteChildren: RootRouteChildren = {
   MenuRoute: MenuRoute,
   OrdersRoute: OrdersRoute,
   PerformanceRoute: PerformanceRoute,
-  RevenueRoute: RevenueRoute,
+  RevenueRoute: RevenueRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
