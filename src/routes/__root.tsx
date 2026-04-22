@@ -44,6 +44,13 @@ export const Route = createRootRoute({
       { name: "author", content: "Bella Cucina" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { property: "og:title", content: "Bella Cucina · Service Desk" },
+      { name: "twitter:title", content: "Bella Cucina · Service Desk" },
+      { name: "description", content: "Order Up! is a restaurant operations application for managing orders, performance, and forecasts." },
+      { property: "og:description", content: "Order Up! is a restaurant operations application for managing orders, performance, and forecasts." },
+      { name: "twitter:description", content: "Order Up! is a restaurant operations application for managing orders, performance, and forecasts." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/95676f08-5f99-4b23-865e-eebbdc036a7c/id-preview-f0d57c48--c1c09952-bb01-4e00-83dd-89d657a567ab.lovable.app-1776858668937.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/95676f08-5f99-4b23-865e-eebbdc036a7c/id-preview-f0d57c48--c1c09952-bb01-4e00-83dd-89d657a567ab.lovable.app-1776858668937.png" },
     ],
     links: [
       {
