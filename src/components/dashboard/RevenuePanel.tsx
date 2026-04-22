@@ -99,7 +99,7 @@ export function RevenuePanel() {
                   fontSize: 12,
                   fontFamily: "JetBrains Mono",
                 }}
-                formatter={(v: number) => currency(v)}
+                formatter={(v) => currency(Number(v))}
               />
               <Bar dataKey="revenue" fill="var(--color-primary)" radius={[2, 2, 0, 0]} />
             </BarChart>
@@ -130,7 +130,7 @@ export function RevenuePanel() {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(v: number) => currency(v)}
+                  formatter={(v) => currency(Number(v))}
                   contentStyle={{
                     background: "var(--color-popover)",
                     border: "1px solid var(--color-foreground)",
